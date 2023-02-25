@@ -76,7 +76,6 @@ def similitud_cos(s1, s2):
     return ((tfidf * tfidf.T).A)[0,1]
 
 # Ruta inicial
-@app.route('/', methods=['POST'])
 @app.route('/', methods=['GET', 'POST'])
 def recomendar():
     if request.method == 'GET':
