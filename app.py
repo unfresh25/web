@@ -95,5 +95,4 @@ def recomendar():
         print("El libro elegido es: ", libro_recomendado[0])
         return render_template('index.html', libro=libro_recomendado)
 
-    
 app.run(debug=True)
