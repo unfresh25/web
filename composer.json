@@ -1,0 +1,11 @@
+{
+    "scripts": {
+      "compile": [
+        "chmod 775 *",
+        "chmod 755 static/*",
+        "chmod 755 static/src/*",
+        "chmod 755 static/components/*",
+        "chmod 755 templates/*"
+      ]
+    }
+  }
