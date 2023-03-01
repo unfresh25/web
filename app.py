@@ -3,6 +3,54 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from flask import Flask, render_template, request
 import numpy as np
+import os
+
+# Cambia los permisos de los archivos para que se puedan ejecutar en Heroku
+
+path = '.'
+
+for filename in os.listdir(path):
+    print(filename)
+    filepath = os.path.join(path, filename)
+    os.chmod(filepath, 0o755)
+
+print("Se han cambiado los permisos de los archivos")
+
+path = './static'
+
+for filename in os.listdir(path):
+    print(filename)
+    filepath = os.path.join(path, filename)
+    os.chmod(filepath, 0o755)
+
+print("Se han cambiado los permisos de los archivos")
+
+path = './static/src'
+
+for filename in os.listdir(path):
+    print(filename)
+    filepath = os.path.join(path, filename)
+    os.chmod(filepath, 0o755)
+
+print("Se han cambiado los permisos de los archivos")
+
+path = './static/components'
+
+for filename in os.listdir(path):
+    print(filename)
+    filepath = os.path.join(path, filename)
+    os.chmod(filepath, 0o755)
+
+print("Se han cambiado los permisos de los archivos")
+
+path = './templates'
+
+for filename in os.listdir(path):
+    print(filename)
+    filepath = os.path.join(path, filename)
+    os.chmod(filepath, 0o755)
+
+# Inicializa la aplicación Flask
 
 app = Flask(__name__)
 
