@@ -10,43 +10,32 @@ import os
 path = '.'
 
 for filename in os.listdir(path):
-    print(filename)
     filepath = os.path.join(path, filename)
     os.chmod(filepath, 0o755)
 
-print("Se han cambiado los permisos de los archivos")
+
 
 path = './static'
 
 for filename in os.listdir(path):
-    print(filename)
     filepath = os.path.join(path, filename)
     os.chmod(filepath, 0o755)
-
-print("Se han cambiado los permisos de los archivos")
 
 path = './static/src'
 
 for filename in os.listdir(path):
-    print(filename)
     filepath = os.path.join(path, filename)
     os.chmod(filepath, 0o755)
-
-print("Se han cambiado los permisos de los archivos")
 
 path = './static/components'
 
 for filename in os.listdir(path):
-    print(filename)
     filepath = os.path.join(path, filename)
     os.chmod(filepath, 0o755)
-
-print("Se han cambiado los permisos de los archivos")
 
 path = './templates'
 
 for filename in os.listdir(path):
-    print(filename)
     filepath = os.path.join(path, filename)
     os.chmod(filepath, 0o755)
 
