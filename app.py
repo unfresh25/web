@@ -3,41 +3,25 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from flask import Flask, render_template, request
 import numpy as np
-import os
+import os, sys, stat
 
 # Cambia los permisos de los archivos para que se puedan ejecutar en Heroku
 
-path = '.'
+# Definir los directorios a los que se les cambiarán los permisos.
+directories = ['.', './static', './templates', './static/src', './static/components']
 
-for filename in os.listdir(path):
-    filepath = os.path.join(path, filename)
-    os.chmod(filepath, 0o755)
-
-
-
-path = './static'
-
-for filename in os.listdir(path):
-    filepath = os.path.join(path, filename)
-    os.chmod(filepath, 0o755)
-
-path = './static/src'
-
-for filename in os.listdir(path):
-    filepath = os.path.join(path, filename)
-    os.chmod(filepath, 0o755)
-
-path = './static/components'
-
-for filename in os.listdir(path):
-    filepath = os.path.join(path, filename)
-    os.chmod(filepath, 0o755)
-
-path = './templates'
-
-for filename in os.listdir(path):
-    filepath = os.path.join(path, filename)
-    os.chmod(filepath, 0o755)
+# Recorrer los directorios y cambiar los permisos de cada archivo.
+for directory in directories:
+    for root, dirs, files in os.walk(directory):
+        for name in files:
+            path = os.path.join(root, name)
+            permisos_actuales = os.stat(path).st_mode
+            print(f"Los permisos actuales del archivo {path} son: {oct(permisos_actuales & 0o777)}")
+            os.chmod(path, 0o755)
+            # Obtener información sobre el archivo.
+            file_stat = os.stat(path)
+            # Imprimir el modo (permisos) del archivo en octal.
+            print(f"Los permisos del archivo {path} son: {oct(file_stat.st_mode & 0o777)}")
 
 # Inicializa la aplicación Flask
 
