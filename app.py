@@ -5,12 +5,20 @@ from sklearn.metrics.pairwise import cosine_similarity
 from flask import Flask, render_template, request
 import numpy as np
 
+# Inicializa la aplicación Flask
+
+app = Flask(__name__)
+
+# Conexión a la base de datos de Heroku
+
 conexion = ms.connect(host='us-cdbr-east-06.cleardb.net', 
                       database='heroku_10d26a3bc956359', 
                       user='bf96f903006815', 
                       password='a6e26608')
 
 micursor = conexion.cursor()
+
+# Carga los datos de la base de datos en los DataFrames
 
 col1 = ["title", "author", "`main genre`", "`second genre`","num_page", "rating", "sinopsis"]
 
@@ -26,9 +34,10 @@ filas = micursor.fetchall()
 
 recomendaciones = pd.DataFrame(filas, columns=col2)
 
-# Inicializa la aplicación Flask
+# Cierra la conexión a la base de datos
 
-app = Flask(__name__)
+micursor.close()
+conexion.close()
 
 # Define la función para convertir a número
 def convierte_a_numero(cadena):
