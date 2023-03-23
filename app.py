@@ -1,16 +1,40 @@
+import mysql.connector as ms
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from flask import Flask, render_template, request
 import numpy as np
 
+import stat
+import os
+
+conexion = ms.connect(host='us-cdbr-east-06.cleardb.net', 
+                      database='heroku_10d26a3bc956359', 
+                      user='bf96f903006815', 
+                      password='a6e26608')
+
+print(conexion)
+micursor = conexion.cursor()
+
+col1 = ["title", "author", "`main genre`", "`second genre`","num_page", "rating", "sinopsis"]
+
+micursor.execute(f"SELECT {', '.join(col1)} FROM libros")
+filas = micursor.fetchall()
+
+libros = pd.DataFrame(filas, columns=col1)
+print(libros)
+
+col2 = ["title", "author", "sinopsis", "`main genre`", "`second genre`", "rating", "num_page", "cover"]
+
+micursor.execute(f"SELECT {', '.join(col2)} FROM recomendaciones")
+filas = micursor.fetchall()
+
+recomendaciones = pd.DataFrame(filas, columns=col2)
+print(recomendaciones)
+
 # Inicializa la aplicación Flask
 
 app = Flask(__name__)
-
-# Lee los archivos de Excel
-leidos = pd.read_excel("Libros.xlsx")
-para_leer = pd.read_excel("listofbooks.xlsx")
 
 # Define la función para convertir a número
 def convierte_a_numero(cadena):
@@ -21,55 +45,55 @@ def convierte_a_numero(cadena):
         return None 
 
 # Aplica la función a la columna "num_page" de los DataFrames
-leidos["num_page"] = leidos["num_page"].apply(convierte_a_numero)
-para_leer["num_page"] = para_leer["num_page"].apply(convierte_a_numero)
+libros["num_page"] = libros["num_page"].apply(convierte_a_numero)
+recomendaciones["num_page"] = recomendaciones["num_page"].apply(convierte_a_numero)
 
 # Función para filtrar los libros por longitud y género
-def filtro_longitud(preferencia, limite, libros_para_leer):
+def filtro_longitud(preferencia, limite, libros_recomendaciones):
     if preferencia.lower() == "corto":
-        return libros_para_leer[libros_para_leer['num_page'] <= limite]
+        return libros_recomendaciones[libros_recomendaciones['num_page'] <= limite]
     elif preferencia.lower() == "extenso":
-        return libros_para_leer[libros_para_leer['num_page'] > limite]
+        return libros_recomendaciones[libros_recomendaciones['num_page'] > limite]
     else:
-        return libros_para_leer
+        return libros_recomendaciones
 
 def filtro_genero(genero, libros):
     if genero != "Cualquiera":        
-        return libros[(libros['main genre'] == genero)]
+        return libros[(libros['`main genre`'] == genero)]
     else:
         return libros
 
 # Función para comparar la sinopsis de los libros leídos con la sinopsis del libro a recomendar y asignar una puntuación a cada libro leído
-def comparar_sinopsis(sinopsis, libros_leidos):
+def comparar_sinopsis(sinopsis, libros_libros):
     puntuaciones = []
-    for libro in libros_leidos['sinopsis']:
+    for libro in libros_libros['sinopsis']:
         puntuaciones.append(similitud_cos(libro, sinopsis))
-    libros_leidos['puntuacion'] = puntuaciones
-    libros_leidos_ordenados = libros_leidos.sort_values(by='puntuacion', ascending=False)
-    return libros_leidos_ordenados
+    libros_libros['puntuacion'] = puntuaciones
+    libros_libros_ordenados = libros_libros.sort_values(by='puntuacion', ascending=False)
+    return libros_libros_ordenados
 
 # Recomendador de libros basado en la sinopsis y el género del libro utilizando la similitud del coseno y hacer un random de los libros que tengan una puntuación mayor a 0.5
-def recomendar_libro(preferencia, limite, genero, libros_leidos, libros_para_leer):   
+def recomendar_libro(preferencia, limite, genero, libros_libros, libros_recomendaciones):   
     if request.method == 'POST':
         datos = request.form.to_dict()
         print(datos)  # Agregar esta línea
 
-    libros_filtrados_por_genero = filtro_genero(genero, libros_para_leer)
+    libros_filtrados_por_genero = filtro_genero(genero, libros_recomendaciones)
     libros_filtrados_por_genero = libros_filtrados_por_genero.sample(20).reset_index(drop=True)
     print("Se han seleccionado 5 libros para leer")
     print(libros_filtrados_por_genero.head(5)) 
     libros_filtrados_por_longitud = filtro_longitud(preferencia, limite, libros_filtrados_por_genero)
     libros_ordenados_por_rating = libros_filtrados_por_longitud.sort_values(by='rating', ascending=False)
     for i, libro in libros_ordenados_por_rating.iterrows():
-        libros_leidos_comparados = comparar_sinopsis(libro['sinopsis'], libros_leidos)
-        if libros_leidos_comparados.iloc[0]['title'] != libro['title']:
+        libros_libros_comparados = comparar_sinopsis(libro['sinopsis'], libros_libros)
+        if libros_libros_comparados.iloc[0]['title'] != libro['title']:
             if pd.isna(libro['num_page']):
                 # handle NaN value
                 print("Nada")
             else:
                 libro['num_page'] = int(libro['num_page'])
                 
-            return libro['title'], libro['author'], libro['main genre'], libro['second genre'], libro['num_page'], libro['rating'], libro['sinopsis'], libro['cover']
+            return libro['title'], libro['author'], libro['`main genre`'], libro['`second genre`'], libro['num_page'], libro['rating'], libro['sinopsis'], libro['cover']
     return "No se encontró un libro para recomendar"
 
 # Función para calcular la similitud del coseno
@@ -93,8 +117,9 @@ def recomendar():
         else:
             limite_paginas = 0
         genero_elegido = request.form['genero']
-        libro_recomendado = recomendar_libro(preferencia_longitud, limite_paginas, genero_elegido, leidos, para_leer)
+        libro_recomendado = recomendar_libro(preferencia_longitud, limite_paginas, genero_elegido, libros, recomendaciones)
         print("El libro elegido es: ", libro_recomendado[0])
         return render_template('index.html', libro=libro_recomendado)
 
 app.run(debug=True, port = 1023)
+
