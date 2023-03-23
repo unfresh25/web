@@ -5,15 +5,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from flask import Flask, render_template, request
 import numpy as np
 
-import stat
-import os
-
 conexion = ms.connect(host='us-cdbr-east-06.cleardb.net', 
                       database='heroku_10d26a3bc956359', 
                       user='bf96f903006815', 
                       password='a6e26608')
 
-print(conexion)
 micursor = conexion.cursor()
 
 col1 = ["title", "author", "`main genre`", "`second genre`","num_page", "rating", "sinopsis"]
@@ -22,7 +18,6 @@ micursor.execute(f"SELECT {', '.join(col1)} FROM libros")
 filas = micursor.fetchall()
 
 libros = pd.DataFrame(filas, columns=col1)
-print(libros)
 
 col2 = ["title", "author", "sinopsis", "`main genre`", "`second genre`", "rating", "num_page", "cover"]
 
@@ -30,7 +25,6 @@ micursor.execute(f"SELECT {', '.join(col2)} FROM recomendaciones")
 filas = micursor.fetchall()
 
 recomendaciones = pd.DataFrame(filas, columns=col2)
-print(recomendaciones)
 
 # Inicializa la aplicación Flask
 
@@ -76,7 +70,6 @@ def comparar_sinopsis(sinopsis, libros_libros):
 def recomendar_libro(preferencia, limite, genero, libros_libros, libros_recomendaciones):   
     if request.method == 'POST':
         datos = request.form.to_dict()
-        print(datos)  # Agregar esta línea
 
     libros_filtrados_por_genero = filtro_genero(genero, libros_recomendaciones)
     libros_filtrados_por_genero = libros_filtrados_por_genero.sample(20).reset_index(drop=True)
